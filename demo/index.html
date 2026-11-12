@@ -143,6 +143,7 @@ const CONFIG = {
   EXPLORER_URL: "https://robinhoodchain.blockscout.com",
   WIF_TOKEN: "0x5173b8ea6923c2d40267890d45c46a3480954773",
   CONTRACT_ADDRESS: "0x56c43d2F731Db72652125d84e50164c025ba7DAF", // deployed 2026-11-12, tx 98fefd2bf4...
+  DEPLOY_BLOCK: "0x6b37fd9", // log queries start here; the public RPC rejects wide ranges
   RECEIPT_ANCHORED_TOPIC: "0x47e5bbcebe56a9abf968093fff5d61b1a6536e4f9724fb319596d62dc0d2a082",
   BOND_SETTLED_TOPIC: "0x5fc4d0a4ea329c940cfa1efe4ad05e164ca9f0118af7df1cdcc0e6314f7d1bf4",
   RECEIPT_COUNT_SELECTOR: "0x7f038f3c",
@@ -297,9 +298,9 @@ function loadFeed() {
   document.getElementById("predeploy-banner").style.display = "none";
   const addr = CONFIG.CONTRACT_ADDRESS;
   Promise.all([
-    rpc("eth_getLogs", [{ fromBlock: "0x0", toBlock: "latest", address: addr,
+    rpc("eth_getLogs", [{ fromBlock: "0x6b37fd9", toBlock: "latest", address: addr,
                           topics: [CONFIG.RECEIPT_ANCHORED_TOPIC] }]),
-    rpc("eth_getLogs", [{ fromBlock: "0x0", toBlock: "latest", address: addr,
+    rpc("eth_getLogs", [{ fromBlock: "0x6b37fd9", toBlock: "latest", address: addr,
                           topics: [CONFIG.BOND_SETTLED_TOPIC] }])
   ]).then(([anchored, settled]) => {
     const verdictByTx = {};
