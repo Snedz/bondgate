@@ -1,0 +1,66 @@
+{
+  "chain_ok": true,
+  "records": [
+    {
+      "tool": "write_file",
+      "class": "write",
+      "tier": "write",
+      "action_hash": "0xac468123ed0271d2098342f63d05221fbd54954e92eed44498c2bb950d608870",
+      "bound_hash": "0xac468123ed0271d2098342f63d05221fbd54954e92eed44498c2bb950d608870",
+      "execute_hash": "0xac468123ed0271d2098342f63d05221fbd54954e92eed44498c2bb950d608870",
+      "verdict": "approve",
+      "verdict_code": 0,
+      "bond": 100000000000000000000,
+      "context": "demo",
+      "approved": false,
+      "index": 0,
+      "prev": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "receipt_hash": "787e1e2a25bee0797c9b390237cf584947cf8dd6b3bea8ad177d40b22d85decc"
+    },
+    {
+      "tool": "write_file",
+      "class": "write",
+      "tier": "write",
+      "action_hash": "0x105fe8230d3f845ba59a902ca57d9426e18526298936833cc229040cf0638d5c",
+      "bound_hash": "0x105fe8230d3f845ba59a902ca57d9426e18526298936833cc229040cf0638d5c",
+      "execute_hash": "0xff36f113d8de672864aeb4ca8ec68c155172bd6d819abc41da6905ff04c544c4",
+      "verdict": "unsafe",
+      "verdict_code": 2,
+      "bond": 100000000000000000000,
+      "context": "demo",
+      "approved": false,
+      "index": 1,
+      "prev": "787e1e2a25bee0797c9b390237cf584947cf8dd6b3bea8ad177d40b22d85decc",
+      "receipt_hash": "c6091b38a40a434ac1a3a44674dfe1d25b2368050539de075e81af1358768c88"
+    },
+    {
+      "tool": "transfer_funds",
+      "class": "transfer",
+      "tier": "gate",
+      "action_hash": "0x04af9dab5a378a54e86e0e24a174eea1a5a6f0876b37f14c89951c4c5192d639",
+      "bound_hash": "0x04af9dab5a378a54e86e0e24a174eea1a5a6f0876b37f14c89951c4c5192d639",
+      "execute_hash": "0x04af9dab5a378a54e86e0e24a174eea1a5a6f0876b37f14c89951c4c5192d639",
+      "verdict": "reject",
+      "verdict_code": 1,
+      "bond": 500000000000000000000,
+      "context": "demo",
+      "approved": true,
+      "index": 2,
+      "prev": "c6091b38a40a434ac1a3a44674dfe1d25b2368050539de075e81af1358768c88",
+      "receipt_hash": "9026769f6a94ccc5a9df3742f7f2392e4ace9479e3b2ba0b4a4f67483154c238"
+    }
+  ],
+  "txs": [
+    "7869b9826ba2a925e816f3bd303e131910850978087a022c539529be8264c55f",
+    "bb144f42fdaa32630eeba396d91b6f9dbd4b115b3ed9d667e11a527a90276e6d",
+    "2e570310b74e92bf6b10e7cff3748bb01a66addc9b98abfc802bde0c639e9792",
+    "6215fc832e8080c4836ab9b7e82c3f35b4ba1e0a812a0fed71a3f0708fc716fc",
+    "49b07d3bea6fc67a23b1cd681fb1c8ddf8bd7fd34f5f082e9fa14cdd32319bbe",
+    "d261a176e8854ff15556f767843ab6c9cce84ad8a24102f9c00a5f2a2b4d766a",
+    "02ffffb3dcb01b5d06da45a13f9e7373cc063aa40162adfcb402de760ee29dee"
+  ],
+  "approve_tx": "af2315dc2d7d20354407a913ed332500077fe2564d96ee495f6c1f0fb16c154d",
+  "contract": "0x56c43d2F731Db72652125d84e50164c025ba7DAF",
+  "pool_balance": "350000000000000000000",
+  "receipt_count": 3
+}
