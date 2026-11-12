@@ -18,7 +18,7 @@ recompute.
 
 **Categories:** agents and ai · tools and infra
 
-**Team:** Mission Winning (solo) — X: [PLACEHOLDER — founder to confirm handle]
+**Team:** Mission Winning (solo) — X: @6ix9even
 
 **Repo:** https://github.com/Snedz/bondgate
 

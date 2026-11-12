@@ -1,5 +1,7 @@
 # BondGate — an onchain approval gate for AI agents
 
+![BondGate logo](bondgate-logo.png)
+
 An agent that wants to take a real action first posts a **$WIF bond** on
 Robinhood Chain and submits the action's payload, hash-bound at queue time.
 A deterministic policy gate — an 8-class policy table, no LLM in the
