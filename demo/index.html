@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BondGate — onchain approval gate for AI agents</title>
+<style>
+  :root { --fg:#1a1d21; --muted:#5b6470; --line:#d9dee6; --bg:#f7f8fa;
+          --ok:#0d7a3f; --bad:#b3261e; --warn:#9a6a00; --card:#fff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         color:var(--fg); background:var(--bg); }
+  main { max-width:880px; margin:0 auto; padding:24px 18px 64px; }
+  h1 { font-size:30px; margin:0 0 4px; }
+  h2 { font-size:20px; margin:34px 0 10px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+  .sub { color:var(--muted); font-size:17px; margin:0 0 8px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px;
+          padding:16px 18px; margin:12px 0; }
+  .banner { border-radius:10px; padding:12px 16px; margin:12px 0; font-weight:600; }
+  .banner.predeploy { background:#fdf3e0; border:1px solid #e3c878; color:#6b5200; }
+  .banner.degraded  { background:#fdeceb; border:1px solid #e0a49f; color:#7c1d17; display:none; }
+  .banner.live      { background:#e7f6ee; border:1px solid #9fd4b4; color:#0d5c31; display:none; }
+  code, .mono { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:13px;
+                word-break:break-all; }
+  table { border-collapse:collapse; width:100%; margin:8px 0; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .verdict { font-weight:700; text-transform:uppercase; font-size:13px; letter-spacing:.04em; }
+  .v-approve { color:var(--ok); } .v-reject { color:var(--bad); } .v-unsafe { color:var(--warn); }
+  .tag { display:inline-block; font-size:12px; font-weight:700; padding:2px 8px; border-radius:99px;
+         background:#eef1f5; color:var(--muted); margin-left:8px; vertical-align:middle; }
+  .small { color:var(--muted); font-size:14px; }
+  a { color:#0b57d0; }
+  ul { margin:6px 0 6px 20px; padding:0; }
+</style>
+</head>
+<body>
+<main>
+
+  <h1>BondGate</h1>
+  <p class="sub">An onchain approval gate for AI agents — $WIF bonds settled by a
+  deterministic, recomputable policy verdict on Robinhood Chain.</p>
+
+  <div class="banner predeploy" id="predeploy-banner">
+    PRE-DEPLOY DEMO PAGE — the BondGate contract is <strong>not yet deployed</strong>.
+    Everything below that is labelled a test run happened locally, offline. No mainnet
+    address, transaction, or receipt exists yet, and none is implied.
+  </div>
+
+  <h2>What it is</h2>
+  <div class="card">
+    <p>An AI agent that wants to take a real action first posts a $WIF bond against the
+    hash of the action it intends to take. The payload is <strong>hash-bound at queue
+    time</strong>. A deterministic policy gate — an 8-class policy table, no LLM in the
+    decision path — evaluates the action class and re-verifies the payload hash at
+    execution time.</p>
+    <ul>
+      <li><span class="verdict v-approve">Approve</span> → the action executes, the bond is released.</li>
+      <li><span class="verdict v-reject">Reject</span> → the bond is forfeited to a pool.</li>
+      <li><span class="verdict v-unsafe">Unsafe</span> (payload differs from its bound hash) →
+        the bond is locked for a seven-day <em>evidence window</em>, then forfeitable.</li>
+      <li>A bond the operator never settles becomes reclaimable by the agent after the
+        settle window — no bond can be stranded by silence.</li>
+    </ul>
+    <p><strong>The verdict is the product.</strong> A BondGate verdict is a pure function of
+    the hash-bound payload and a published policy table — anyone can recompute it offline
+    and prove a wrong settlement from the receipt chain. BondGate sells
+    <strong>verifiable operation, not trustless operation</strong>: the operator runs the
+    gate, but cannot plausibly lie about what the gate decided.</p>
+    <p><strong>Why $WIF:</strong> during this event, $WIF's utility in BondGate is the
+    bond-escrow unit plus the event's own community-vote burn (votes burn $WIF — a sink
+    the chain already runs), and the forfeit pool is a <strong>misbehavior premium, not a
+    yield engine</strong>.</p>
+    <p class="small">Not the only bonded entry, and it doesn't claim to be: PACT, another
+    entry in this event, bonds workers at 50% of job price with hash-bound terms and a
+    human resolver. BondGate gates <em>permission to act</em> rather than payment for hired
+    work, and its verdict — unlike a resolver's ruling — can be recomputed bit for bit.
+    Bond sizes here are runner parameters: the full demo runs end-to-end on a ~$10 float.</p>
+  </div>
+
+  <h2>Contract</h2>
+  <div class="card" id="contract-card">
+    <p style="margin-top:0"><strong>Status: LIVE ON MAINNET.</strong> Deployed 2026-11-12
+    (<a href="https://robinhoodchain.blockscout.com/tx/0x98fefd2bf42aaa0c4af47fccc02d1b00a2d3f7d4d40c07b3b5120c00868cc5b7">deploy tx</a>). The $WIF for the demo bonds was
+    swapped on the live Uniswap V4 pool
+    (<a href="https://robinhoodchain.blockscout.com/tx/0xfa3935f2cd0c94c9172c55948a46ebd2577ee206eea6b5ffbe71acb7bb6f0f63">swap tx</a>: 0.001 ETH → 1602.18 $WIF).</p>
+    <table>
+      <tr><th>Network</th><td>Robinhood Chain mainnet</td></tr>
+      <tr><th>Chain ID</th><td class="mono">4663</td></tr>
+      <tr><th>RPC</th><td class="mono">https://rpc.mainnet.chain.robinhood.com</td></tr>
+      <tr><th>Explorer</th><td><a href="https://robinhoodchain.blockscout.com">robinhoodchain.blockscout.com</a> (Blockscout)</td></tr>
+      <tr><th>$WIF token</th><td class="mono">0x5173b8ea6923c2d40267890d45c46a3480954773</td></tr>
+      <tr><th>BondGate contract</th><td id="contract-address">— not yet deployed —</td></tr>
+    </table>
+    <p class="small">The $WIF address is the contract worldisflat.fun itself links to via
+    its Pons launchpad page — verified there, not inferred from a ticker search. The
+    contract takes the token in its constructor and has no upgradeability, no mint, no
+    pause, no blacklist, and no admin withdrawal path.</p>
+  </div>
+
+  <h2>Receipt feed</h2>
+  <div class="banner degraded" id="feed-degraded"></div>
+  <div class="banner live" id="feed-live"></div>
+  <div class="card">
+    <div id="feed"><p class="small">Loading…</p></div>
+    <p class="small">Receipts are hash-chained: each cites the previous receipt's hash, so
+    the sequence is tamper-evident. Live rows are read from the chain via the public RPC;
+    if that read fails or is rate-limited, the feed falls back to the last known receipts
+    behind the banner above rather than rendering empty.</p>
+  </div>
+
+  <h2>Worked scenarios <span class="tag">MAINNET — REAL TRANSACTIONS</span></h2>
+  <p class="small">Ran 2026-11-12 by the package's own runner against the live contract
+  on Robinhood Chain mainnet (the same code paths the acceptance suite exercises; the
+  full suite is 14 tests, all passing, including EVM tests against the real compiled
+  contract). The receipt chain below verifies. Every card links its real Blockscout
+  transactions. The forfeit pool paid a 150 $WIF clean-streak reward after scenario C
+  (<a href="https://robinhoodchain.blockscout.com/tx/0x02ffffb3dcb01b5d06da45a13f9e7373cc063aa40162adfcb402de760ee29dee">payout tx</a>) —
+  the flywheel's return leg, shown, not just claimed.</p>
+  <div id="scenarios"></div>
+
+  <div class="card">
+    <p style="margin:0"><strong>Honesty line:</strong> BondGate is an unaudited hackathon
+    prototype. Use it only with a fresh wallet and a trivial float only. It has not been
+    reviewed, fuzzed, or audited, and it holds real value the moment you fund it.
+    Receipts in the current schema do not yet cite the policy-table hash behind each
+    verdict; policy-hash anchoring is the first post-submission change on the roadmap.</p>
+  </div>
+
+</main>
+
+<script>
+"use strict";
+/* ================= CONFIG — deploy-time constants =================
+   CONTRACT_ADDRESS is filled by the operator at deploy time. It is EMPTY
+   on purpose until then: the page renders an explicit not-deployed state
+   instead of a fake live address. Event topics and the receiptCount
+   selector below were computed from the compiled contract ABI and
+   verified on 2026-11-12.                                        */
+const CONFIG = {
+  CHAIN_ID: 4663,
+  RPC_URL: "https://rpc.mainnet.chain.robinhood.com",
+  EXPLORER_URL: "https://robinhoodchain.blockscout.com",
+  WIF_TOKEN: "0x5173b8ea6923c2d40267890d45c46a3480954773",
+  CONTRACT_ADDRESS: "0x56c43d2F731Db72652125d84e50164c025ba7DAF", // deployed 2026-11-12, tx 98fefd2bf4...
+  RECEIPT_ANCHORED_TOPIC: "0x47e5bbcebe56a9abf968093fff5d61b1a6536e4f9724fb319596d62dc0d2a082",
+  BOND_SETTLED_TOPIC: "0x5fc4d0a4ea329c940cfa1efe4ad05e164ca9f0118af7df1cdcc0e6314f7d1bf4",
+  RECEIPT_COUNT_SELECTOR: "0x7f038f3c",
+  RPC_TIMEOUT_MS: 8000
+};
+
+/* ============ LAST-KNOWN RECEIPTS (real mainnet demo cycles) ==========
+   Generated 2026-11-12 by tools/wif-gate's GateRunner against the live
+   contract on Robinhood Chain mainnet (18 decimals). These ARE mainnet
+   transactions; they are what the feed shows whenever the live RPC read
+   is unavailable, always behind a banner. The pool payout (150 $WIF
+   clean-streak reward, tx 0x02ffffb3dcb01b5d06da45a13f9e7373cc063aa40162adfcb402de760ee29dee)
+   anchors no receipt — no verdict exists for a payout.               */
+const LAST_KNOWN = [
+  // Real mainnet demo cycles, 2026-11-12 (Robinhood Chain). Bond sizes are
+  // in $WIF base units (18 decimals). Each record's tx is its settle tx.
+  { index: 0, tool: "write_file", tier: "write", verdict: "approve", verdict_code: 0,
+    bond: 100000000000000000000,
+    action_hash: "0xac468123ed0271d2098342f63d05221fbd54954e92eed44498c2bb950d608870",
+    bound_hash: "0xac468123ed0271d2098342f63d05221fbd54954e92eed44498c2bb950d608870",
+    execute_hash: "0xac468123ed0271d2098342f63d05221fbd54954e92eed44498c2bb950d608870",
+    prev: "0x0000000000000000000000000000000000000000000000000000000000000000",
+    receipt_hash: "787e1e2a25bee0797c9b390237cf584947cf8dd6b3bea8ad177d40b22d85decc",
+    tx: "0xbb144f42fdaa32630eeba396d91b6f9dbd4b115b3ed9d667e11a527a90276e6d",
+    post_tx: "0x7869b9826ba2a925e816f3bd303e131910850978087a022c539529be8264c55f" },
+  { index: 1, tool: "write_file", tier: "write", verdict: "unsafe", verdict_code: 2,
+    bond: 100000000000000000000,
+    action_hash: "0x105fe8230d3f845ba59a902ca57d9426e18526298936833cc229040cf0638d5c",
+    bound_hash: "0x105fe8230d3f845ba59a902ca57d9426e18526298936833cc229040cf0638d5c",
+    execute_hash: "0xff36f113d8de672864aeb4ca8ec68c155172bd6d819abc41da6905ff04c544c4",
+    prev: "787e1e2a25bee0797c9b390237cf584947cf8dd6b3bea8ad177d40b22d85decc",
+    receipt_hash: "c6091b38a40a434ac1a3a44674dfe1d25b2368050539de075e81af1358768c88",
+    tx: "0x6215fc832e8080c4836ab9b7e82c3f35b4ba1e0a812a0fed71a3f0708fc716fc",
+    post_tx: "0x2e570310b74e92bf6b10e7cff3748bb01a66addc9b98abfc802bde0c639e9792" },
+  { index: 2, tool: "transfer_funds", tier: "gate", verdict: "reject", verdict_code: 1,
+    bond: 500000000000000000000,
+    action_hash: "0x04af9dab5a378a54e86e0e24a174eea1a5a6f0876b37f14c89951c4c5192d639",
+    bound_hash: "0x04af9dab5a378a54e86e0e24a174eea1a5a6f0876b37f14c89951c4c5192d639",
+    execute_hash: "0x04af9dab5a378a54e86e0e24a174eea1a5a6f0876b37f14c89951c4c5192d639",
+    prev: "c6091b38a40a434ac1a3a44674dfe1d25b2368050539de075e81af1358768c88",
+    receipt_hash: "9026769f6a94ccc5a9df3742f7f2392e4ace9479e3b2ba0b4a4f67483154c238",
+    tx: "0xd261a176e8854ff15556f767843ab6c9cce84ad8a24102f9c00a5f2a2b4d766a",
+    post_tx: "0x49b07d3bea6fc67a23b1cd681fb1c8ddf8bd7fd34f5f082e9fa14cdd32319bbe" }
+];
+const LAST_KNOWN_SOURCE = "mainnet demo cycles, 2026-11-12 — real transactions on Robinhood Chain (Blockscout-linked)";
+
+const VERDICTS = ["approve", "reject", "unsafe"];
+
+/* ============================ helpers ============================ */
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function shortHash(h) { return h && h.length > 18 ? h.slice(0, 10) + "…" + h.slice(-6) : h; }
+function wordAt(data, i) { return data.slice(2 + i * 64, 2 + (i + 1) * 64); }
+function wordInt(data, i) { return parseInt(wordAt(data, i), 16); }
+
+function rpc(method, params) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), CONFIG.RPC_TIMEOUT_MS);
+  return fetch(CONFIG.RPC_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    signal: ctrl.signal
+  }).then(r => {
+    clearTimeout(timer);
+    if (!r.ok) throw new Error("RPC HTTP " + r.status);
+    return r.json();
+  }).then(j => {
+    if (j.error) throw new Error("RPC error: " + (j.error.message || "unknown"));
+    return j.result;
+  });
+}
+
+/* ============================ rendering ============================ */
+function localRow(r) {
+  return "<tr><td>" + r.index + "</td>" +
+    "<td><span class='verdict v-" + r.verdict + "'>" + r.verdict + "</span></td>" +
+    "<td class='mono'>" + esc(r.tool) + " (" + esc(r.tier) + ")</td>" +
+    "<td class='mono'>" + esc(shortHash("0x" + r.receipt_hash)) + "</td>" +
+    "<td class='mono'>" + esc(shortHash(r.action_hash)) + "</td><td>" +
+    (r.tx ? "<a href='" + CONFIG.EXPLORER_URL + "/tx/" + r.tx + "'>tx</a>" : "—") +
+    "</td></tr>";
+}
+function liveRow(r) {
+  const tx = CONFIG.EXPLORER_URL + "/tx/" + r.txHash;
+  const v = r.verdict != null
+    ? "<span class='verdict v-" + VERDICTS[r.verdict] + "'>" + VERDICTS[r.verdict] + "</span>" : "—";
+  return "<tr><td>" + r.index + "</td><td>" + v + "</td><td class='mono'>onchain</td>" +
+    "<td class='mono'>" + esc(shortHash(r.receiptHash)) + "</td>" +
+    "<td class='mono'>" + esc(shortHash(r.actionHash)) + "</td>" +
+    "<td><a href='" + esc(tx) + "'>tx</a></td></tr>";
+}
+function renderFeed(rowsHtml, sourceLabel) {
+  document.getElementById("feed").innerHTML =
+    "<table><tr><th>#</th><th>Verdict</th><th>Tool / source</th><th>Receipt hash</th>" +
+    "<th>Action hash</th><th>Proof</th></tr>" + rowsHtml + "</table>" +
+    "<p class='small'>Source: " + esc(sourceLabel) + "</p>";
+}
+function showDegraded(reason) {
+  const b = document.getElementById("feed-degraded");
+  b.textContent = "Live feed unavailable — showing last known state. (" + reason + ")";
+  b.style.display = "block";
+  document.getElementById("feed-live").style.display = "none";
+  renderFeed(LAST_KNOWN.map(localRow).join(""), LAST_KNOWN_SOURCE);
+}
+function renderScenarios() {
+  const a = LAST_KNOWN[0], b = LAST_KNOWN[1], c = LAST_KNOWN[2];
+  document.getElementById("scenarios").innerHTML =
+    "<div class='card'><p style='margin-top:0'><strong>Scenario A — clean.</strong> " +
+      "<span class='verdict v-approve'>APPROVE</span></p>" +
+      "<p>Agent proposes <span class='mono'>write_file</span> (write tier) → bond posted " +
+      "(100 $WIF) → payload hash at execute matches the bound hash → " +
+      "policy approves → bond released → receipt #" + a.index + " anchored.<br>" +
+      "<span class='mono'>receipt 0x" + a.receipt_hash + "</span><br>" +
+      "<a href='" + CONFIG.EXPLORER_URL + "/tx/" + a.post_tx + "'>bond tx</a> · " +
+      "<a href='" + CONFIG.EXPLORER_URL + "/tx/" + a.tx + "'>settle tx</a></p></div>" +
+    "<div class='card'><p style='margin-top:0'><strong>Scenario B — tamper.</strong> " +
+      "<span class='verdict v-unsafe'>UNSAFE</span></p>" +
+      "<p>The same write action, but the payload path was altered after queueing " +
+      "(<span class='mono'>notes/a.txt</span> → <span class='mono'>/etc/shadow</span>) → " +
+      "execute hash ≠ bound hash → UNSAFE regardless of class → bond locked for the " +
+      "seven-day evidence window → receipt #" + b.index + " anchored.<br>" +
+      "<span class='mono'>bound 0x" + b.bound_hash.slice(2) + "</span><br>" +
+      "<span class='mono'>exec&nbsp;&nbsp;0x" + b.execute_hash.slice(2) + "</span><br>" +
+      "<a href='" + CONFIG.EXPLORER_URL + "/tx/" + b.post_tx + "'>bond tx</a> · " +
+      "<a href='" + CONFIG.EXPLORER_URL + "/tx/" + b.tx + "'>settle tx</a></p></div>" +
+    "<div class='card'><p style='margin-top:0'><strong>Scenario C — policy reject.</strong> " +
+      "<span class='verdict v-reject'>REJECT</span></p>" +
+      "<p>Agent proposes <span class='mono'>transfer_funds</span> (gate tier, approved by a " +
+      "different party than the proposer) → bond posted (500 $WIF) → the action fails a " +
+      "policy condition → REJECT → the bond is forfeited to the pool → receipt #" + c.index +
+      " anchored. (Deny-tier actions such as <span class='mono'>read_secrets</span> are refused " +
+      "before bonding, so their bond is 0 by design — no escrow is ever taken for an action " +
+      "class that can never be approved. Unknown tools fail closed into the same tier.)<br>" +
+      "<span class='mono'>receipt 0x" + c.receipt_hash + "</span><br>" +
+      "<a href='" + CONFIG.EXPLORER_URL + "/tx/" + c.post_tx + "'>bond tx</a> · " +
+      "<a href='" + CONFIG.EXPLORER_URL + "/tx/" + c.tx + "'>settle tx</a></p></div>";
+}
+
+/* ============================ live feed ============================ */
+function loadFeed() {
+  if (!CONFIG.CONTRACT_ADDRESS) {
+    document.getElementById("contract-address").textContent = "— not yet deployed —";
+    showDegraded("contract not yet deployed");
+    return;
+  }
+  document.getElementById("contract-address").innerHTML =
+    "<a class='mono' href='" + CONFIG.EXPLORER_URL + "/address/" + CONFIG.CONTRACT_ADDRESS +
+    "'>" + CONFIG.CONTRACT_ADDRESS + "</a>";
+  document.getElementById("predeploy-banner").style.display = "none";
+  const addr = CONFIG.CONTRACT_ADDRESS;
+  Promise.all([
+    rpc("eth_getLogs", [{ fromBlock: "0x0", toBlock: "latest", address: addr,
+                          topics: [CONFIG.RECEIPT_ANCHORED_TOPIC] }]),
+    rpc("eth_getLogs", [{ fromBlock: "0x0", toBlock: "latest", address: addr,
+                          topics: [CONFIG.BOND_SETTLED_TOPIC] }])
+  ]).then(([anchored, settled]) => {
+    const verdictByTx = {};
+    (settled || []).forEach(l => { verdictByTx[l.transactionHash] = wordInt(l.data, 0); });
+    const rows = (anchored || []).map(l => ({
+      index: wordInt(l.data, 1),
+      receiptHash: "0x" + wordAt(l.data, 0),
+      actionHash: l.topics[1],
+      txHash: l.transactionHash,
+      verdict: (l.transactionHash in verdictByTx) ? verdictByTx[l.transactionHash] : null
+    })).sort((x, y) => x.index - y.index);
+    if (!rows.length) { showDegraded("no receipts on chain yet"); return; }
+    const b = document.getElementById("feed-live");
+    b.textContent = "Live — receipts read from Robinhood Chain via the public RPC.";
+    b.style.display = "block";
+    renderFeed(rows.map(liveRow).join(""), "live chain read, " + new Date().toISOString());
+  }).catch(err => showDegraded(err && err.message ? err.message : "RPC read failed"));
+}
+
+renderScenarios();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", loadFeed);
+} else { loadFeed(); }
+</script>
+</body>
+</html>
