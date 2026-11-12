@@ -20,11 +20,11 @@ recompute.
 
 **Team:** Mission Winning (solo) — X: [PLACEHOLDER — founder to confirm handle]
 
-**Repo:** [PLACEHOLDER — public repo URL, created at submission time]
+**Repo:** https://github.com/Snedz/bondgate
 
 **Demo video:** [PLACEHOLDER — video URL, recorded after deploy]
 
-**Live link:** [PLACEHOLDER — demo page URL, after hosting]
+**Live link:** https://snedz.github.io/bondgate/demo/
 
 **Onchain proof (Blockscout):**
 - Contract: [0x56c43d2F731Db72652125d84e50164c025ba7DAF](https://robinhoodchain.blockscout.com/address/0x56c43d2F731Db72652125d84e50164c025ba7DAF) — deployed 2026-11-12, [deploy tx](https://robinhoodchain.blockscout.com/tx/0x98fefd2bf42aaa0c4af47fccc02d1b00a2d3f7d4d40c07b3b5120c00868cc5b7)
